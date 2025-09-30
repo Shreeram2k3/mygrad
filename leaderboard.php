@@ -62,6 +62,7 @@ $all_students = $conn->query("SELECT * FROM students ORDER BY gpa DESC");
             width: 100%;
             border-collapse: collapse;
             background: white;
+            border-radius: 16px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         }
 
@@ -108,19 +109,18 @@ $all_students = $conn->query("SELECT * FROM students ORDER BY gpa DESC");
     <?php endif; ?>
 </div>
 
-<!-- Full students table -->
+
 <table>
     <tr>
-        <th>ID</th>
+        <th>S.NO</th>
         <th>Name</th>
-        <th>DOB</th>
         <th>GPA</th>
     </tr>
-    <?php while($student = $all_students->fetch_assoc()): ?>
+    <?php $sno = 1;
+    while($student = $all_students->fetch_assoc()): ?>
         <tr>
-            <td><?php echo $student['id']; ?></td>
+           <td><?= $sno++ ?></td>
             <td><?php echo $student['name']; ?></td>
-            <td><?php echo $student['dob']; ?></td>
             <td><?php echo $student['gpa']; ?></td>
         </tr>
     <?php endwhile; ?>
