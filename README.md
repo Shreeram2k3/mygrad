@@ -4,7 +4,7 @@ MyGrade is a web-based GPA calculator and leaderboard system designed for colleg
 It allows students to log in securely, calculate their GPA, and view their ranking on a live leaderboard.  
 An admin panel is included to manage student data and ensure smooth operation.
 
-This was developed as a part of our college WEB Design LAB mini project
+This was developed as a part of our college WEB Design LAB mini project. This is just a prototype and under developement
 
 ---
 
