@@ -1,13 +1,14 @@
 <?php
 session_start();
 
-
-if (!isset($_SESSION['student_id'])) {
+if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'student') {
     header("Location: login.php");
     exit;
 }
 
-// Use safe defaults if not set
+// Student page here
+
+// defaults if not set
 $name = $_SESSION['student_name'] ?? 'Guest';
 $regno = $_SESSION['student_regno'] ?? 'N/A';
 ?>
