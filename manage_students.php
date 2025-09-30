@@ -1,0 +1,510 @@
+<?php
+session_start();
+include 'config.php';
+
+if (!isset($_SESSION['admin_id']) || !isset($_SESSION['admin_name'])) {
+    header("Location: adminlogin.php");
+    exit;
+}
+
+$name = $_SESSION['admin_name'] ?? 'Guest';
+$success = "";
+$error = "";
+
+// Handle delete
+if (isset($_GET['delete_id'])) {
+    $delete_id = intval($_GET['delete_id']);
+    $stmt = $conn->prepare("DELETE FROM students WHERE id = ?");
+    $stmt->bind_param("i", $delete_id);
+    if ($stmt->execute()) {
+        $success = "Student deleted successfully!";
+    } else {
+        $error = "Failed to delete student!";
+    }
+}
+
+// Check if it's an edit request
+$edit_id = $_GET['edit'] ?? null;
+$edit_data = null;
+if ($edit_id) {
+    $stmt = $conn->prepare("SELECT * FROM students WHERE id = ?");
+    $stmt->bind_param("i", $edit_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $edit_data = $result->fetch_assoc();
+}
+
+// Handle add or update
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $reg_no = $_POST['reg'];
+    $student_name = $_POST['name'];
+    $dob = $_POST['dob'];
+    $student_id = $_POST['student_id'] ?? null;
+
+    if ($student_id) {
+        // Update existing student
+        $stmt = $conn->prepare("UPDATE students SET reg_no = ?, name = ?, dob = ? WHERE id = ?");
+        $stmt->bind_param("sssi", $reg_no, $student_name, $dob, $student_id);
+        if ($stmt->execute()) {
+            $success = "Student updated successfully!";
+        } else {
+            $error = "Failed to update student. Please try again!";
+        }
+    } else {
+        // Insert new student
+        $stmt = $conn->prepare("INSERT INTO students (reg_no, name, dob) VALUES (?, ?, ?)");
+        $stmt->bind_param("sss", $reg_no, $student_name, $dob);
+        if ($stmt->execute()) {
+            $success = "Student added successfully!";
+        } else {
+            $error = "Please enter valid details.";
+        }
+    }
+}
+?>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Manage Students</title>
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+body {
+    background: #f8f9fa;
+}
+nav {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    background: #ffffff;
+    padding: 10px 30px; 
+    display: flex;
+    justify-content: space-between;
+    align-items: center; 
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+    z-index: 1000;
+}
+
+nav .logo {
+    display: flex;
+    align-items: center; 
+    gap: 10px;
+    font-weight: 600;
+    font-size: 1.3rem;
+    color: #2d3436;
+    text-decoration: none;
+}
+
+nav .logo img {
+    display: block;
+    width: 30px;
+    height: 30px;
+}
+
+nav .nav-links {
+    display: flex;
+    gap: 25px;
+    align-items: center;
+}
+
+nav .nav-links a {
+    text-decoration: none;
+    color: #636e72;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+nav .nav-links a:hover,
+nav .nav-links a.active { 
+    color: #0984e3;
+}
+
+nav .profile {
+    position: relative;
+    cursor: pointer;
+    display: flex;
+    align-items: center; 
+}
+
+nav .profile-circle {
+    width: 40px;
+    height: 40px;
+    background: #dfe6e9;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #2d3436;
+    font-weight: bold;
+    font-size: 1rem;
+}
+.dropdown {
+    position: absolute;
+    top: 50px;
+    right: 0;
+    background: #ffffff;
+    border: 1px solid #dcdde1;
+    border-radius: 10px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+    display: none;
+    min-width: 160px;
+    overflow: hidden;
+}
+.dropdown a, .dropdown button {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 10px 15px;
+    text-decoration: none;
+    color: #2d3436;
+    font-size: 0.95rem;
+    border: none;
+    background: none;
+    cursor: pointer;
+}
+.dropdown a:hover, .dropdown button:hover {
+    background: #f1f2f6;
+}
+
+
+.logout {
+    text-align: center;
+    margin: 40px 0;
+}
+.logout a {
+    text-decoration: none;
+    background: #d63031;
+    color: #fff;
+    padding: 10px 25px;
+    border-radius: 10px;
+    font-weight: bold;
+    transition: background 0.3s ease;
+}
+.logout a:hover {
+    background: #e17055;
+}
+footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: #ffffff;
+    border-top: 1px solid #dcdde1;
+    padding: 10px 20px;
+    text-align: right;
+    font-size: 0.8rem;
+    color: #636e72;
+}
+footer a {
+    color: #0984e3;
+    text-decoration: none;
+}
+footer a:hover {
+    text-decoration: underline;
+}
+@media (max-width: 500px) {
+    .container {
+        grid-template-columns: 1fr;
+    }
+}
+
+.form-container {
+    width: 400px;
+    margin: 90px auto; /* centers form */
+    background: #fff;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.1);
+}
+
+.form-container h2 {
+    margin-bottom: 10px;
+    color: #2d3436;
+    text-align: center;
+}
+
+.form-container hr {
+    margin: 15px 0;
+    border: 0;
+    border-top: 1px solid #dfe6e9;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+form label {
+    display: flex;
+    flex-direction: column;
+    font-weight: 500;
+    color: #636e72;
+    font-size: 0.9rem;
+}
+
+form input {
+    margin-top: 5px;
+    padding: 10px;
+    border: 1px solid #dcdde1;
+    border-radius: 8px;
+    outline: none;
+    transition: border 0.3s ease;
+}
+
+form input:focus {
+    border: 1px solid #0984e3;
+}
+
+form button {
+    padding: 12px;
+    background: #0984e3;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+
+}
+
+form button:hover {
+    background: #74b9ff;
+}
+
+.messages {
+   
+    width: 400px;
+    margin: 100px auto;
+    text-align: center;
+}
+
+.success {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    font-size: 0.95rem;
+    font-weight: 500;
+}
+
+.error {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    
+}
+
+.manage-activity {
+    background: #ffffff;
+    max-width: 1500px;
+    margin: 50px auto;
+    border-radius: 12px;
+    
+}
+
+.manage-activity h2 {
+    text-align: center;
+    font-size: 1.8rem;
+    color: #2d3436;
+    margin-bottom: 20px;
+}
+
+.activity-card {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 25px;
+    box-shadow: 0 15px 30px rgba(0,0,0,0.08);
+    overflow-x: auto;
+}
+
+.premium-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    min-width: 700px;
+    text-align: center;
+}
+
+.premium-table thead tr {
+    background: #0984e3;
+    color: #ffffff;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.premium-table th, .premium-table td {
+    padding: 15px 20px;
+}
+
+.premium-table tbody tr {
+    background: #f7f9fc; 
+    border-bottom: 1px solid #e0e0e0;
+    transition: all 0.2s ease;
+}
+
+
+.premium-table a {
+    padding: 6px 12px;
+    margin: 0 2px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.premium-table a.edit {
+    background: #0984e3;
+    color: #fff;
+}
+
+.premium-table a.edit:hover {
+    background: #74b9ff;
+}
+
+.premium-table a.delete {
+    background: #d63031;
+    color: #fff;
+}
+
+.premium-table a.delete:hover {
+    background: #e17055;
+}
+</style>
+<script>
+function toggleDropdown() {
+    const dropdown = document.getElementById('profileDropdown');
+    dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+}
+document.addEventListener('click', function(event){
+    const dropdown = document.getElementById('profileDropdown');
+    const profile = document.getElementById('profileBtn');
+    if (!profile.contains(event.target) && !dropdown.contains(event.target)) {
+        dropdown.style.display = 'none';
+    }
+});
+</script>
+</head>
+<body>
+
+<nav>
+<a href="#" class="logo">
+        <img src="assets/colorlogo.png" style="height: 30px; width:30px" alt="">
+    MyGrade</a>
+    <div class="nav-links">
+        <a href="http://localhost/mygrad/admindashboard.php">Admin Dashboard</a>
+        <a href="#"></a>
+        <a href="http://localhost/mygrad/manage_students.php">Manage students</a>
+    </div>
+    <div class="profile" id="profileBtn" onclick="toggleDropdown()">
+        <div class="profile-circle"><?php echo strtoupper(substr($name ?? '?',0,1)); ?></div>
+        <div class="dropdown" id="profileDropdown">
+            <a href="#">Profile</a>
+            <form method="POST" action="logout.php">
+                <button type="submit">Logout</button>
+            </form>
+        </div>
+    </div> 
+</a>
+</nav>
+
+<div class="messages" id="messages">
+    <?php if ($success): ?>
+        <p class="success"><?php echo $success; ?></p>
+    <?php endif; ?>
+    <?php if ($error): ?>
+        <p class="error"><?php echo $error; ?></p>
+    <?php endif; ?>
+</div>
+
+<div class="form-container">
+    <h2><?php echo $edit_data ? "Edit Student" : "Add Student"; ?></h2>
+    <hr>
+    <form action="manage_students.php<?php echo $edit_data ? '?edit='.$edit_data['id'] : ''; ?>" method="POST">
+        <input type="hidden" name="student_id" value="<?php echo $edit_data['id'] ?? ''; ?>">
+        <label>
+            <span>Register Number</span>
+            <input type="text" name="reg" value="<?php echo $edit_data['reg_no'] ?? ''; ?>" required>
+        </label>
+
+        <label>
+            <span>Name</span>
+            <input type="text" name="name" value="<?php echo $edit_data['name'] ?? ''; ?>" required>
+        </label>
+
+        <label>
+            <span>Date of Birth</span>
+            <input type="date" name="dob" value="<?php echo $edit_data['dob'] ?? ''; ?>" required>
+        </label>
+
+        <button type="submit"><?php echo $edit_data ? "Update Student" : "Add Student"; ?></button>
+        <?php if ($edit_data): ?>
+            <a href="manage_students.php" style="display:inline-block; margin-top:10px;">Cancel Edit</a>
+        <?php endif; ?>
+    </form>
+</div>
+
+<div class="manage-activity">
+    <h2>Manage Activity</h2>
+    <div class="activity-card">
+        <table class="premium-table">
+            <thead>
+                <tr>
+                    <th>S.No</th>
+                    <th>Name</th>
+                    <th>Reg. No</th>
+                    <th>DOB</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php
+                $sql = "SELECT * FROM students";
+                $result = $conn->query($sql);
+                if ($result->num_rows > 0):
+                    $sno = 1;
+                    while ($row = $result->fetch_assoc()): ?>
+                        <tr>
+                            <td><?= $sno++ ?></td>
+                            <td><?= htmlspecialchars($row['name']) ?></td>
+                            <td><?= htmlspecialchars($row['reg_no']) ?></td>
+                            <td><?= htmlspecialchars($row['dob']) ?></td>
+                            <td>
+                                <a href="manage_students.php?edit=<?= $row['id'] ?>" class="edit">Edit</a>
+                                <a href="manage_students.php?delete_id=<?= $row['id'] ?>" class="delete" onclick="return confirm('Are you sure?');">Delete</a>
+                            </td>
+                        </tr>
+                    <?php endwhile;
+                else: ?>
+                    <tr>
+                        <td colspan="5">No records found</td>
+                    </tr>
+                <?php endif; ?>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+setTimeout(() => {
+    const msgBox = document.getElementById('messages');
+    if (msgBox) msgBox.style.display = "none";
+}, 4000);
+</script>
+
+</body>
+</html>
