@@ -42,12 +42,14 @@ if ($gpa >= 8) {
         color: #111827;
         margin-top: 20px;
         margin-bottom: 40px;
+        margin-left: 30px;
     }
 
     .welcome-card hr {
         border: none;
         border-top: 1px solid #e5e7eb;
         margin-bottom: 30px;
+        
     }
 
     .gpa-ring {
