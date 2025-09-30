@@ -9,8 +9,8 @@ if (!isset($_SESSION['student_id']) ) {
 // Student page here
 
 // defaults if not set
-$name = $_SESSION['student_name'] ?? 'Guest';
-$regno = $_SESSION['student_regno'] ?? 'N/A';
+$name = $_SESSION['student_name'] ;
+$regno = $_SESSION['student_regno'];
 ?>
 
 <!DOCTYPE html>
