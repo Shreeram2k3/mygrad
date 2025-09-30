@@ -1,13 +1,13 @@
 <?php
 session_start();
-include 'config.php'; // mysqli connection
+include 'config.php';
 $error = "";
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $username = $_POST['username'];
     $password = $_POST['password'];
 
-    // Prepare SQL statement
+  
     $stmt = $conn->prepare("SELECT * FROM admin_users WHERE username=?");
     $stmt->bind_param("s", $username);
     $stmt->execute();
@@ -32,7 +32,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin Login</title>
 <style>
-/* Reset & Base */
 * {
     margin: 0;
     padding: 0;
@@ -48,7 +47,6 @@ body {
     background: linear-gradient(135deg, #2980b9, #6dd5fa);
 }
 
-/* Login Card */
 .login-container {
     background: #ffffff;
     padding: 40px 30px;
