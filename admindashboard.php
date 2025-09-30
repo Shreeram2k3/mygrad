@@ -1,15 +1,21 @@
 <?php
-
 session_start();
+include 'config.php';
 
 if (!isset($_SESSION['admin_id']) || !isset($_SESSION['admin_name'])) {
     header("Location: adminlogin.php");
     exit;
 }
 
-$name =  $_SESSION['admin_name'] ?? 'Guest';
+$name = $_SESSION['admin_name'] ?? 'Guest';
 
-// Admin content here
+// Fetch total students
+$total_students = 0;
+$result = $conn->query("SELECT COUNT(*) as total FROM students");
+if ($result) {
+    $row = $result->fetch_assoc();
+    $total_students = $row['total'];
+}
 ?>
 
 <!DOCTYPE html>
@@ -26,62 +32,57 @@ $name =  $_SESSION['admin_name'] ?? 'Guest';
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 body {
-    background: #f8f9fa;
+    background: #f4f6f8;
 }
+
 nav {
     position: fixed;
     top: 0;
     width: 100%;
-    background: #ffffff;
-    padding: 10px 30px; /* slightly smaller padding for better vertical alignment */
+    background: #fff;
+    padding: 10px 30px;
     display: flex;
     justify-content: space-between;
-    align-items: center; /* ensures all items are vertically centered */
+    align-items: center;
     box-shadow: 0 4px 10px rgba(0,0,0,0.08);
     z-index: 1000;
 }
-
 nav .logo {
     display: flex;
-    align-items: center; /* vertically centers img and text */
-    gap: 10px; /* space between logo image and text */
+    align-items: center;
+    gap: 10px;
     font-weight: 600;
     font-size: 1.3rem;
     color: #2d3436;
     text-decoration: none;
 }
-
 nav .logo img {
-    display: block; /* ensures no extra space under image */
     width: 30px;
     height: 30px;
 }
-
 nav .nav-links {
     display: flex;
     gap: 25px;
-    align-items: center; /* vertically centers the links */
+    align-items: center;
 }
-
 nav .nav-links a {
     text-decoration: none;
     color: #636e72;
     font-weight: 500;
     transition: color 0.3s ease;
 }
-
 nav .nav-links a:hover,
-nav .nav-links a.active { /* active link styling */
+nav .nav-links a.active {
     color: #0984e3;
 }
+
 
 nav .profile {
     position: relative;
     cursor: pointer;
     display: flex;
-    align-items: center; /* vertically centers the circle */
+    align-items: center;
 }
-
 nav .profile-circle {
     width: 40px;
     height: 40px;
@@ -123,45 +124,49 @@ nav .profile-circle {
 }
 
 
-.logout {
-    text-align: center;
-    margin: 40px 0;
+.main-content {
+    margin-top: 80px; 
+    padding: 30px;
 }
-.logout a {
-    text-decoration: none;
-    background: #d63031;
+
+.welcome-card {
+    background: #0984e3;
     color: #fff;
-    padding: 10px 25px;
-    border-radius: 10px;
-    font-weight: bold;
-    transition: background 0.3s ease;
+    padding: 25px 30px;
+    border-radius: 15px;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.08);
+    margin-bottom: 30px;
+    font-size: 1.2rem;
+    font-weight: 500;
 }
-.logout a:hover {
-    background: #e17055;
+
+.stats-card {
+    background: #fff;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.08);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    max-width: 400px;
+    margin-bottom: 20px;
 }
-footer {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    background: #ffffff;
-    border-top: 1px solid #dcdde1;
-    padding: 10px 20px;
-    text-align: right;
-    font-size: 0.8rem;
-    color: #636e72;
-}
-footer a {
+.stats-card .icon {
+    font-size: 2.5rem;
     color: #0984e3;
-    text-decoration: none;
 }
-footer a:hover {
-    text-decoration: underline;
+.stats-card .details {
+    text-align: right;
 }
-@media (max-width: 500px) {
-    .container {
-        grid-template-columns: 1fr;
-    }
+.stats-card .details .number {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #2d3436;
+}
+.stats-card .details .label {
+    font-size: 0.95rem;
+    color: #636e72;
+    margin-top: 5px;
 }
 </style>
 <script>
@@ -182,12 +187,11 @@ document.addEventListener('click', function(event){
 
 <nav>
     <a href="#" class="logo">
-        <img src="assets/colorlogo.png" style="height: 30px; width:30px" alt="">
-    MyGrade</a>
+        <img src="assets/colorlogo.png" alt=""> MyGrade
+    </a>
     <div class="nav-links">
-        <a href="http://localhost/mygrad/admindashboard.php">Admin Dashboard</a>
-        <a href="#"></a>
-        <a href="http://localhost/mygrad/manage_students.php">Manage students</a>
+        <a href="admindashboard.php" class="active">Admin Dashboard</a>
+        <a href="manage_students.php">Manage Students</a>
     </div>
     <div class="profile" id="profileBtn" onclick="toggleDropdown()">
         <div class="profile-circle"><?php echo strtoupper(substr($name ?? '?',0,1)); ?></div>
@@ -199,3 +203,21 @@ document.addEventListener('click', function(event){
         </div>
     </div>
 </nav>
+
+<div class="main-content">
+
+    <div class="welcome-card">
+        Welcome Admin, <?php echo htmlspecialchars($name); ?>!
+    </div>
+
+    <div class="stats-card">
+        <div class="icon">&#128100;</div> 
+        <div class="details">
+            <div class="number"><?php echo $total_students; ?></div>
+            <div class="label">Total Students</div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

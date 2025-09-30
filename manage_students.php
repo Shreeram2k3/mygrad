@@ -1,30 +1,64 @@
 <?php
-
 session_start();
 include 'config.php';
+
 if (!isset($_SESSION['admin_id']) || !isset($_SESSION['admin_name'])) {
     header("Location: adminlogin.php");
     exit;
 }
 
-$name =  $_SESSION['admin_name'] ?? 'Guest';
-
-$success="";
+$name = $_SESSION['admin_name'] ?? 'Guest';
+$success = "";
 $error = "";
 
+// Handle delete
+if (isset($_GET['delete_id'])) {
+    $delete_id = intval($_GET['delete_id']);
+    $stmt = $conn->prepare("DELETE FROM students WHERE id = ?");
+    $stmt->bind_param("i", $delete_id);
+    if ($stmt->execute()) {
+        $success = "Student deleted successfully!";
+    } else {
+        $error = "Failed to delete student!";
+    }
+}
+
+// Check if it's an edit request
+$edit_id = $_GET['edit'] ?? null;
+$edit_data = null;
+if ($edit_id) {
+    $stmt = $conn->prepare("SELECT * FROM students WHERE id = ?");
+    $stmt->bind_param("i", $edit_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $edit_data = $result->fetch_assoc();
+}
+
+// Handle add or update
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $reg_no = $_POST['reg'];
-    $name   = $_POST['name'];
-    $dob    = $_POST['dob'];
+    $student_name = $_POST['name'];
+    $dob = $_POST['dob'];
+    $student_id = $_POST['student_id'] ?? null;
 
-    // Insert query
-    $stmt = $conn->prepare("INSERT INTO students (reg_no, name, dob) VALUES (?, ?, ?)");
-    $stmt->bind_param("sss", $reg_no, $name, $dob);
-
-    if ($stmt->execute()) {
-        $success="Student added successfully!";
+    if ($student_id) {
+        // Update existing student
+        $stmt = $conn->prepare("UPDATE students SET reg_no = ?, name = ?, dob = ? WHERE id = ?");
+        $stmt->bind_param("sssi", $reg_no, $student_name, $dob, $student_id);
+        if ($stmt->execute()) {
+            $success = "Student updated successfully!";
+        } else {
+            $error = "Failed to update student. Please try again!";
+        }
     } else {
-        $error="please enter valid details";
+        // Insert new student
+        $stmt = $conn->prepare("INSERT INTO students (reg_no, name, dob) VALUES (?, ?, ?)");
+        $stmt->bind_param("sss", $reg_no, $student_name, $dob);
+        if ($stmt->execute()) {
+            $success = "Student added successfully!";
+        } else {
+            $error = "Please enter valid details.";
+        }
     }
 }
 ?>
@@ -34,7 +68,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin Dashboard</title>
+<title>Manage Students</title>
 <style>
 * {
     margin: 0;
@@ -50,18 +84,18 @@ nav {
     top: 0;
     width: 100%;
     background: #ffffff;
-    padding: 10px 30px; /* slightly smaller padding for better vertical alignment */
+    padding: 10px 30px; 
     display: flex;
     justify-content: space-between;
-    align-items: center; /* ensures all items are vertically centered */
+    align-items: center; 
     box-shadow: 0 4px 10px rgba(0,0,0,0.08);
     z-index: 1000;
 }
 
 nav .logo {
     display: flex;
-    align-items: center; /* vertically centers img and text */
-    gap: 10px; /* space between logo image and text */
+    align-items: center; 
+    gap: 10px;
     font-weight: 600;
     font-size: 1.3rem;
     color: #2d3436;
@@ -69,7 +103,7 @@ nav .logo {
 }
 
 nav .logo img {
-    display: block; /* ensures no extra space under image */
+    display: block;
     width: 30px;
     height: 30px;
 }
@@ -77,7 +111,7 @@ nav .logo img {
 nav .nav-links {
     display: flex;
     gap: 25px;
-    align-items: center; /* vertically centers the links */
+    align-items: center;
 }
 
 nav .nav-links a {
@@ -88,7 +122,7 @@ nav .nav-links a {
 }
 
 nav .nav-links a:hover,
-nav .nav-links a.active { /* active link styling */
+nav .nav-links a.active { 
     color: #0984e3;
 }
 
@@ -96,7 +130,7 @@ nav .profile {
     position: relative;
     cursor: pointer;
     display: flex;
-    align-items: center; /* vertically centers the circle */
+    align-items: center; 
 }
 
 nav .profile-circle {
@@ -350,9 +384,6 @@ form button:hover {
 .premium-table a.delete:hover {
     background: #e17055;
 }
-
-
-
 </style>
 <script>
 function toggleDropdown() {
@@ -371,7 +402,7 @@ document.addEventListener('click', function(event){
 <body>
 
 <nav>
-    <a href="#" class="logo">
+<a href="#" class="logo">
         <img src="assets/colorlogo.png" style="height: 30px; width:30px" alt="">
     MyGrade</a>
     <div class="nav-links">
@@ -387,42 +418,47 @@ document.addEventListener('click', function(event){
                 <button type="submit">Logout</button>
             </form>
         </div>
-    </div>
+    </div> 
+</a>
 </nav>
+
 <div class="messages" id="messages">
     <?php if ($success): ?>
         <p class="success"><?php echo $success; ?></p>
     <?php endif; ?>
-
     <?php if ($error): ?>
         <p class="error"><?php echo $error; ?></p>
     <?php endif; ?>
 </div>
 
-    <div class="form-container">
-      <h2>Add Student</h2>
-      <hr>
-        <form action="manage_students.php" method="POST">
-          <label>
+<div class="form-container">
+    <h2><?php echo $edit_data ? "Edit Student" : "Add Student"; ?></h2>
+    <hr>
+    <form action="manage_students.php<?php echo $edit_data ? '?edit='.$edit_data['id'] : ''; ?>" method="POST">
+        <input type="hidden" name="student_id" value="<?php echo $edit_data['id'] ?? ''; ?>">
+        <label>
             <span>Register Number</span>
-            <input type="text" name="reg" required>
-          </label>
+            <input type="text" name="reg" value="<?php echo $edit_data['reg_no'] ?? ''; ?>" required>
+        </label>
 
-          <label>
+        <label>
             <span>Name</span>
-            <input type="text" name="name" required>
-          </label>
+            <input type="text" name="name" value="<?php echo $edit_data['name'] ?? ''; ?>" required>
+        </label>
 
-          <label>
+        <label>
             <span>Date of Birth</span>
-            <input type="date" name="dob" required>
-          </label>
+            <input type="date" name="dob" value="<?php echo $edit_data['dob'] ?? ''; ?>" required>
+        </label>
 
-          <button type="submit">Add Student</button>
-        </form>
-    </div>
+        <button type="submit"><?php echo $edit_data ? "Update Student" : "Add Student"; ?></button>
+        <?php if ($edit_data): ?>
+            <a href="manage_students.php" style="display:inline-block; margin-top:10px;">Cancel Edit</a>
+        <?php endif; ?>
+    </form>
+</div>
 
-   <div class="manage-activity">
+<div class="manage-activity">
     <h2>Manage Activity</h2>
     <div class="activity-card">
         <table class="premium-table">
@@ -437,10 +473,8 @@ document.addEventListener('click', function(event){
             </thead>
             <tbody>
                 <?php
-                include 'config.php';
                 $sql = "SELECT * FROM students";
                 $result = $conn->query($sql);
-
                 if ($result->num_rows > 0):
                     $sno = 1;
                     while ($row = $result->fetch_assoc()): ?>
@@ -450,8 +484,8 @@ document.addEventListener('click', function(event){
                             <td><?= htmlspecialchars($row['reg_no']) ?></td>
                             <td><?= htmlspecialchars($row['dob']) ?></td>
                             <td>
-                                <a href="edit_student.php?id=<?= $row['id'] ?>" class="edit">Edit</a>
-                                <a href="delete_student.php?id=<?= $row['id'] ?>" class="delete" onclick="return confirm('Are you sure?');">Delete</a>
+                                <a href="manage_students.php?edit=<?= $row['id'] ?>" class="edit">Edit</a>
+                                <a href="manage_students.php?delete_id=<?= $row['id'] ?>" class="delete" onclick="return confirm('Are you sure?');">Delete</a>
                             </td>
                         </tr>
                     <?php endwhile;
@@ -465,13 +499,11 @@ document.addEventListener('click', function(event){
     </div>
 </div>
 
-
-
 <script>
-  setTimeout(() => {
-      const msgBox = document.getElementById('messages');
-      if (msgBox) msgBox.style.display = "none";
-  }, 4000);
+setTimeout(() => {
+    const msgBox = document.getElementById('messages');
+    if (msgBox) msgBox.style.display = "none";
+}, 4000);
 </script>
 
 </body>
