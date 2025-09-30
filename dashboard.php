@@ -1,213 +1,129 @@
 <?php
-session_start();
+include 'stlayouts/header.php';
+include 'config.php';
 
-if (!isset($_SESSION['student_id']) ) {
-    header("Location: index.php");
-    exit;
+
+$student_id = $_SESSION['student_id'];
+
+// Fetch student data (name & GPA)
+$stmt = mysqli_prepare($conn, "SELECT name, gpa FROM students WHERE id = ?");
+mysqli_stmt_bind_param($stmt, "i", $student_id);
+mysqli_stmt_execute($stmt);
+mysqli_stmt_bind_result($stmt, $name, $gpa);
+mysqli_stmt_fetch($stmt);
+mysqli_stmt_close($stmt);
+
+$maxGPA = 10; 
+$percentage = ($gpa / $maxGPA) * 100;
+
+
+if ($gpa >= 8) {
+    $ringColor = "#22c55e"; // green
+} elseif ($gpa >= 5) {
+    $ringColor = "#f97316"; // orange
+} else {
+    $ringColor = "#ef4444"; // red
 }
-
-// Student page here
-
-// defaults if not set
-$name = $_SESSION['student_name'] ?? 'Guest';
-$regno = $_SESSION['student_regno'] ?? 'N/A';
 ?>
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Student Dashboard</title>
 <style>
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
-body {
-    background: #f8f9fa;
-}
-nav {
-    position: fixed;
-    top: 0;
-    width: 100%;
-    background: #ffffff;
-    padding: 10px 30px; /* slightly smaller padding for better vertical alignment */
-    display: flex;
-    justify-content: space-between;
-    align-items: center; /* ensures all items are vertically centered */
-    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
-    z-index: 1000;
-}
-
-nav .logo {
-    display: flex;
-    align-items: center; /* vertically centers img and text */
-    gap: 10px; /* space between logo image and text */
-    font-weight: 600;
-    font-size: 1.3rem;
-    color: #2d3436;
-    text-decoration: none;
-}
-
-nav .logo img {
-    display: block; /* ensures no extra space under image */
-    width: 30px;
-    height: 30px;
-}
-
-nav .nav-links {
-    display: flex;
-    gap: 25px;
-    align-items: center; /* vertically centers the links */
-}
-
-nav .nav-links a {
-    text-decoration: none;
-    color: #636e72;
-    font-weight: 500;
-    transition: color 0.3s ease;
-}
-
-nav .nav-links a:hover,
-nav .nav-links a.active { /* active link styling */
-    color: #0984e3;
-}
-
-nav .profile {
-    position: relative;
-    cursor: pointer;
-    display: flex;
-    align-items: center; /* vertically centers the circle */
-}
-
-nav .profile-circle {
-    width: 40px;
-    height: 40px;
-    background: #dfe6e9;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #2d3436;
-    font-weight: bold;
-    font-size: 1rem;
-}
-.dropdown {
-    position: absolute;
-    top: 50px;
-    right: 0;
-    background: #ffffff;
-    border: 1px solid #dcdde1;
-    border-radius: 10px;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
-    display: none;
-    min-width: 160px;
-    overflow: hidden;
-}
-.dropdown a, .dropdown button {
-    display: block;
-    width: 100%;
-    text-align: left;
-    padding: 10px 15px;
-    text-decoration: none;
-    color: #2d3436;
-    font-size: 0.95rem;
-    border: none;
-    background: none;
-    cursor: pointer;
-}
-.dropdown a:hover, .dropdown button:hover {
-    background: #f1f2f6;
-}
-
-
-.logout {
-    text-align: center;
-    margin: 40px 0;
-}
-.logout a {
-    text-decoration: none;
-    background: #d63031;
-    color: #fff;
-    padding: 10px 25px;
-    border-radius: 10px;
-    font-weight: bold;
-    transition: background 0.3s ease;
-}
-.logout a:hover {
-    background: #e17055;
-}
-footer {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    background: #ffffff;
-    border-top: 1px solid #dcdde1;
-    padding: 10px 20px;
-    text-align: right;
-    font-size: 0.8rem;
-    color: #636e72;
-}
-footer a {
-    color: #0984e3;
-    text-decoration: none;
-}
-footer a:hover {
-    text-decoration: underline;
-}
-@media (max-width: 500px) {
-    .container {
-        grid-template-columns: 1fr;
+    .welcome-card {
+        background-color: #ffffff;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        padding: 24px;
+        border-radius: 16px;
+        margin: 40px 40px 0 40px;
+        
     }
-}
+
+    .welcome-card h1 {
+        font-size: 1.875rem;
+        font-weight: bold;
+        color: #111827;
+        margin-top: 20px;
+        margin-bottom: 40px;
+        margin-left: 30px;
+    }
+
+    .welcome-card hr {
+        border: none;
+        border-top: 1px solid #e5e7eb;
+        margin-bottom: 30px;
+        
+    }
+
+    .gpa-ring {
+        position: relative;
+        width: 200px;
+        height: 200px;
+        margin: 0 auto;
+    }
+
+    .gpa-ring svg {
+        transform: rotate(-90deg);
+        width: 100%;
+        height: 100%;
+    }
+
+    .gpa-ring circle {
+        fill: none;
+        stroke-width: 12;
+        stroke-linecap: round;
+    }
+
+    .gpa-ring .bg {
+        stroke: #e5e7eb; /* light gray */
+    }
+
+    .gpa-ring .progress {
+        stroke: <?php echo $ringColor; ?>;
+        stroke-dasharray: 565.48; /* circumference (2πr, r=90) */
+        stroke-dashoffset: calc(565.48 - (565.48 * <?php echo $percentage; ?> / 100));
+        transition: stroke-dashoffset 1s ease, stroke 0.5s ease;
+    }
+
+    .gpa-center {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+    }
+
+    .gpa-center h2 {
+        margin: 0;
+        font-size: 2.2rem;
+        font-weight: bold;
+        color: #111827;
+    }
+
+    .gpa-center p {
+        margin: 5px 0 0;
+        font-size: 0.95rem;
+        color: #6b7280;
+    }
 </style>
-<script>
-function toggleDropdown() {
-    const dropdown = document.getElementById('profileDropdown');
-    dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
-}
-document.addEventListener('click', function(event){
-    const dropdown = document.getElementById('profileDropdown');
-    const profile = document.getElementById('profileBtn');
-    if (!profile.contains(event.target) && !dropdown.contains(event.target)) {
-        dropdown.style.display = 'none';
-    }
-});
-</script>
-</head>
-<body>
 
-<nav>
-    <a href="#" class="logo">
-        <img src="assets/colorlogo.png" style="height: 30px; width:30px" alt="">
-    MyGrade</a>
-    <div class="nav-links">
-        <a href="http://localhost/mygrad/dashboard.php">Dashboard</a>
-        <a href="#">GPA</a>
-        <a href="#">Leaderboard</a>
-    </div>
-    <div class="profile" id="profileBtn" onclick="toggleDropdown()">
-        <div class="profile-circle"><?php echo strtoupper(substr($name ?? '?',0,1)); ?></div>
-        <div class="dropdown" id="profileDropdown">
-            <a href="#">Profile</a>
-            <form method="POST" action="logout.php">
-                <button type="submit">Logout</button>
-            </form>
+<div class="welcome-card">
+    <h1>
+        Welcome back, <?php echo htmlspecialchars($name); ?> <span>👋</span>
+    </h1>
+    <hr>
+
+    <!-- GPA Ring -->
+    <div class="gpa-ring">
+        <svg>
+            <!-- background circle -->
+            <circle class="bg" cx="100" cy="100" r="90"></circle>
+            <!-- progress circle -->
+            <circle class="progress" cx="100" cy="100" r="90"></circle>
+        </svg>
+
+        <div class="gpa-center">
+            <h2><?php echo number_format($gpa, 2); ?>/<?php echo $maxGPA; ?></h2>
+            <p> Your Current GPA</p>
         </div>
     </div>
-</nav>
+</div>
 
-
-
-
-
-<footer>
-    By <a href="https://www.linkedin.com/in/shreeram2k3/" target="_blank">Shreeram G</a> & <a href="https://www.linkedin.com/in/sathish-k-u-419593336/" target="_blank">Sathish KU</a>
-</footer>
-
-</body>
-</html>
+<?php include 'stlayouts/footer.php'; ?>
