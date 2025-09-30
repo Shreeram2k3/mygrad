@@ -272,7 +272,86 @@ form button:hover {
     margin-bottom: 15px;
     font-size: 0.95rem;
     font-weight: 500;
+    
 }
+
+.manage-activity {
+    background: #ffffff;
+    max-width: 1500px;
+    margin: 50px auto;
+    border-radius: 12px;
+    
+}
+
+.manage-activity h2 {
+    text-align: center;
+    font-size: 1.8rem;
+    color: #2d3436;
+    margin-bottom: 20px;
+}
+
+.activity-card {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 25px;
+    box-shadow: 0 15px 30px rgba(0,0,0,0.08);
+    overflow-x: auto;
+}
+
+.premium-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    min-width: 700px;
+    text-align: center;
+}
+
+.premium-table thead tr {
+    background: #0984e3;
+    color: #ffffff;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.premium-table th, .premium-table td {
+    padding: 15px 20px;
+}
+
+.premium-table tbody tr {
+    background: #f7f9fc; 
+    border-bottom: 1px solid #e0e0e0;
+    transition: all 0.2s ease;
+}
+
+
+.premium-table a {
+    padding: 6px 12px;
+    margin: 0 2px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.premium-table a.edit {
+    background: #0984e3;
+    color: #fff;
+}
+
+.premium-table a.edit:hover {
+    background: #74b9ff;
+}
+
+.premium-table a.delete {
+    background: #d63031;
+    color: #fff;
+}
+
+.premium-table a.delete:hover {
+    background: #e17055;
+}
+
+
 
 </style>
 <script>
@@ -342,6 +421,49 @@ document.addEventListener('click', function(event){
           <button type="submit">Add Student</button>
         </form>
     </div>
+
+   <div class="manage-activity">
+    <h2>Manage Activity</h2>
+    <div class="activity-card">
+        <table class="premium-table">
+            <thead>
+                <tr>
+                    <th>S.No</th>
+                    <th>Name</th>
+                    <th>Reg. No</th>
+                    <th>DOB</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php
+                include 'config.php';
+                $sql = "SELECT * FROM students";
+                $result = $conn->query($sql);
+
+                if ($result->num_rows > 0):
+                    $sno = 1;
+                    while ($row = $result->fetch_assoc()): ?>
+                        <tr>
+                            <td><?= $sno++ ?></td>
+                            <td><?= htmlspecialchars($row['name']) ?></td>
+                            <td><?= htmlspecialchars($row['reg_no']) ?></td>
+                            <td><?= htmlspecialchars($row['dob']) ?></td>
+                            <td>
+                                <a href="edit_student.php?id=<?= $row['id'] ?>" class="edit">Edit</a>
+                                <a href="delete_student.php?id=<?= $row['id'] ?>" class="delete" onclick="return confirm('Are you sure?');">Delete</a>
+                            </td>
+                        </tr>
+                    <?php endwhile;
+                else: ?>
+                    <tr>
+                        <td colspan="5">No records found</td>
+                    </tr>
+                <?php endif; ?>
+            </tbody>
+        </table>
+    </div>
+</div>
 
 
 
