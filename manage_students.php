@@ -459,7 +459,7 @@ document.addEventListener('click', function(event){
 </div>
 
 <div class="manage-activity">
-    <h2>Manage Activity</h2>
+    <h2>Manage Students</h2>
     <div class="activity-card">
         <table class="premium-table">
             <thead>
