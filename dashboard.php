@@ -34,36 +34,55 @@ nav {
     top: 0;
     width: 100%;
     background: #ffffff;
-    padding: 15px 30px;
+    padding: 10px 30px; /* slightly smaller padding for better vertical alignment */
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: center; /* ensures all items are vertically centered */
     box-shadow: 0 4px 10px rgba(0,0,0,0.08);
     z-index: 1000;
 }
+
 nav .logo {
-    font-weight: 500;
-    font-size: 1.2rem;
+    display: flex;
+    align-items: center; /* vertically centers img and text */
+    gap: 10px; /* space between logo image and text */
+    font-weight: 600;
+    font-size: 1.3rem;
     color: #2d3436;
     text-decoration: none;
 }
+
+nav .logo img {
+    display: block; /* ensures no extra space under image */
+    width: 30px;
+    height: 30px;
+}
+
 nav .nav-links {
     display: flex;
-    gap: 20px;
+    gap: 25px;
+    align-items: center; /* vertically centers the links */
 }
+
 nav .nav-links a {
     text-decoration: none;
     color: #636e72;
     font-weight: 500;
     transition: color 0.3s ease;
 }
-nav .nav-links a:hover {
+
+nav .nav-links a:hover,
+nav .nav-links a.active { /* active link styling */
     color: #0984e3;
 }
+
 nav .profile {
     position: relative;
     cursor: pointer;
+    display: flex;
+    align-items: center; /* vertically centers the circle */
 }
+
 nav .profile-circle {
     width: 40px;
     height: 40px;
@@ -164,7 +183,7 @@ document.addEventListener('click', function(event){
 
 <nav>
     <a href="#" class="logo">
-        <img src="colorlogo.png" style="height: 30px; width:30px" alt="">
+        <img src="assets/colorlogo.png" style="height: 30px; width:30px" alt="">
     MyGrade</a>
     <div class="nav-links">
         <a href="http://localhost/mygrad/dashboard.php">Dashboard</a>

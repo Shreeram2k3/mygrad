@@ -50,7 +50,7 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    background-image: url("eseccse.jpg");
+    background-image: url("assets/eseccse.jpg");
     background-repeat: no-repeat;
     background-size: cover;
     background-position: center;
