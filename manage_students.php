@@ -1,7 +1,7 @@
 <?php
 
 session_start();
-
+include 'config.php';
 if (!isset($_SESSION['admin_id']) || !isset($_SESSION['admin_name'])) {
     header("Location: adminlogin.php");
     exit;
@@ -9,7 +9,24 @@ if (!isset($_SESSION['admin_id']) || !isset($_SESSION['admin_name'])) {
 
 $name =  $_SESSION['admin_name'] ?? 'Guest';
 
-// Admin content here
+$success="";
+$error = "";
+
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $reg_no = $_POST['reg'];
+    $name   = $_POST['name'];
+    $dob    = $_POST['dob'];
+
+    // Insert query
+    $stmt = $conn->prepare("INSERT INTO students (reg_no, name, dob) VALUES (?, ?, ?)");
+    $stmt->bind_param("sss", $reg_no, $name, $dob);
+
+    if ($stmt->execute()) {
+        $success="Student added successfully!";
+    } else {
+        $error="please enter valid details";
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -163,6 +180,100 @@ footer a:hover {
         grid-template-columns: 1fr;
     }
 }
+
+.form-container {
+    width: 400px;
+    margin: 90px auto; /* centers form */
+    background: #fff;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.1);
+}
+
+.form-container h2 {
+    margin-bottom: 10px;
+    color: #2d3436;
+    text-align: center;
+}
+
+.form-container hr {
+    margin: 15px 0;
+    border: 0;
+    border-top: 1px solid #dfe6e9;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+form label {
+    display: flex;
+    flex-direction: column;
+    font-weight: 500;
+    color: #636e72;
+    font-size: 0.9rem;
+}
+
+form input {
+    margin-top: 5px;
+    padding: 10px;
+    border: 1px solid #dcdde1;
+    border-radius: 8px;
+    outline: none;
+    transition: border 0.3s ease;
+}
+
+form input:focus {
+    border: 1px solid #0984e3;
+}
+
+form button {
+    padding: 12px;
+    background: #0984e3;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+
+}
+
+form button:hover {
+    background: #74b9ff;
+}
+
+.messages {
+   
+    width: 400px;
+    margin: 100px auto;
+    text-align: center;
+}
+
+.success {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    font-size: 0.95rem;
+    font-weight: 500;
+}
+
+.error {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    font-size: 0.95rem;
+    font-weight: 500;
+}
+
 </style>
 <script>
 function toggleDropdown() {
@@ -199,3 +310,47 @@ document.addEventListener('click', function(event){
         </div>
     </div>
 </nav>
+<div class="messages" id="messages">
+    <?php if ($success): ?>
+        <p class="success"><?php echo $success; ?></p>
+    <?php endif; ?>
+
+    <?php if ($error): ?>
+        <p class="error"><?php echo $error; ?></p>
+    <?php endif; ?>
+</div>
+
+    <div class="form-container">
+      <h2>Add Student</h2>
+      <hr>
+        <form action="manage_students.php" method="POST">
+          <label>
+            <span>Register Number</span>
+            <input type="text" name="reg" required>
+          </label>
+
+          <label>
+            <span>Name</span>
+            <input type="text" name="name" required>
+          </label>
+
+          <label>
+            <span>Date of Birth</span>
+            <input type="date" name="dob" required>
+          </label>
+
+          <button type="submit">Add Student</button>
+        </form>
+    </div>
+
+
+
+<script>
+  setTimeout(() => {
+      const msgBox = document.getElementById('messages');
+      if (msgBox) msgBox.style.display = "none";
+  }, 4000);
+</script>
+
+</body>
+</html>
