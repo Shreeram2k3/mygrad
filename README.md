@@ -24,4 +24,13 @@ This was developed as a part of our college WEB Design LAB mini project. This is
 - **Server:** Apache
 
 ---
+url:
+
+mygrad.page.gd
+
+To Explore the project use this Credential to login as a Guest. 
+
+1234567890987654
+
+01/01/2025
 
